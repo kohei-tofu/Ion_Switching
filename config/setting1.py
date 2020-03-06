@@ -2,7 +2,7 @@
 import os, getpass
 import os.path as osp
 import argparse
-import models.models
+import models.models as mdls
 import dataset
 
 from easydict import EasyDict as edict
@@ -28,10 +28,10 @@ class Config:
     #  MODEL
     #
     MODEL = edict()
-    MODEL.TYPE = models.conv1d_1
-    #MODEL.TYPE = models.conv_deconv_1
-    #MODEL.TYPE = models.resnet_deconv_1
-    #MODEL.TYPE = models.densenet1d_1
+    MODEL.TYPE = mdls.conv1d_1
+    #MODEL.TYPE = mdls.conv_deconv_1
+    #MODEL.TYPE = mdls.resnet_deconv_1
+    #MODEL.TYPE = mdls.densenet1d_1
     
     MODEL.KEYWORDS = {'t_len' : DATASET.KEYWORDS['time_lentgh']}
     MODEL.DEVICE = 'cuda'

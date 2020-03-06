@@ -4,9 +4,9 @@ from torch import nn
 #from torch.autograd import Variable
 import torch.nn.functional as F
 import models.resnet1d
-import models.model_base
+import models.model_base as mbase
 
-class ion_base(model_base.base):
+class ion_base(mbase.base):
     def __init__(self):
         super(ion_base, self).__init__()
 

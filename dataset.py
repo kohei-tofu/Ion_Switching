@@ -169,8 +169,8 @@ def split_loader(DATASET):
 
     print(data_train.data_num)
     print(data_val.data_num)
-    data_train.preprocess.save_parms(DATASET.PATH)
-    data_val.preprocess.save_parms(DATASET.PATH)
+    data_train.preprocess.load_parms(DATASET.PATH)
+    data_val.preprocess.load_parms(DATASET.PATH)
 
     return data_train, data_val
 

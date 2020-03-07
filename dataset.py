@@ -139,9 +139,10 @@ class IonDataset_seq(IonDataset_one):
             noise = np.random.normal(0., 0.02, _input.shape[0])
             _input = _input + noise.astype(np.float32)
 
+        _input = self.preprocess(_input)
         _input = _input[np.newaxis, :]
 
-        return _inputsave_parms, _target
+        return _input, _target
 
 
 

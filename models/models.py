@@ -47,17 +47,17 @@ class ion_base(mbase.base):
 
     def loss_output(self, data, target, output_list):
         
-        
         output = self.forward(data.to(self.device))
         ret = self.loss_func(output, target.to(self.device))
 
         output = output.cpu().numpy()
+        
         if output_list is None:
             output_list = output
         else:
             output_list = np.concatenate((output_list, output), 0)
 
-        return ret, 
+        return ret, output_list
 
 class loss1(nn.Module):
     def __init__(self, length):

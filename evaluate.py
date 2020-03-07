@@ -46,11 +46,13 @@ def output(cfg, model, device, data_val, epoch):
     #num_data = data_test.num_data
     loss_sum = 0
 
+    output = None
+    
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(data_val):
             
             
-            loss = model.loss(data, target, epoch, 'val')
+            loss, output = model.loss_output(data, target, epoch, 'val')
             if loss is None:
                 print('None')
                 continue
@@ -65,12 +67,17 @@ def output(cfg, model, device, data_val, epoch):
 
     print()
     print('val_loss : ' , loss_sum)
-    return loss_sum
+    return loss_sum, output
 
+
+def make_labels():
+
+    pass
 
 def main(cfg):
 
     torch.manual_seed(cfg.SOLVER.SEED)
+    save_path = cfg.MODEL.SAVE_PATH
     
     #kwargs = {'num_workers': 1, 'pin_memory': True} if args.use_cuda else {}
     data_test = cfg.DATASET.TEST(**cfg.DATASET.KEYWORDS)
@@ -81,30 +88,18 @@ def main(cfg):
     device = torch.device(cfg.SOLVER.N_GPU if cfg.SOLVER.N_GPU >= 0 else "cpu")
     
     model = cfg.MODEL.TYPE(**cfg.MODEL.KEYWORDS)
+    
     print('device', device)
     model.to(device)
     model.set_device(device)
+    model.load_state_dict(torch.load(save_path + "/model_last.pt", map_location=device))
 
     save_path = cfg.MODEL.SAVE_PATH
     util.make_directory(save_path)
 
     print('phase : validation')
-    loss = val(cfg, model, device, test_loader, 0)
+    loss, output = val(cfg, model, device, test_loader, 0)
     print('loss', loss)
-
-    mname = save_path + "model_last.pt"
-    torch.save(model.state_dict(), mname)
-    np.save(save_path + 'loss_train_last.npy', train_loss)
-    np.save(save_path + 'loss_test_last.npy', test_loss)
-    torch.save(optimizer.state_dict(), save_path + "optimizer_last.pth")
-    print('saved', mname) 
-
-    if (epoch % cfg.SOLVER.CHECKPOINT_PERIOD == 0):
-        mname = save_path + "model_" + str(epoch) + ".pt"
-        torch.save(model.state_dict(), mname)
-        torch.save(optimizer.state_dict(), save_path + "optimizer_" + str(epoch) + ".pth")
-        print('saved', mname)
-
 
 
 

@@ -22,9 +22,7 @@ def train(cfg, model, device, data_train, optimizer, epoch, n_epoch_e):
     with torch.set_grad_enabled(True):
         for batch_idx, (data, target) in enumerate(data_train):
 
-            #output = model(data.to(device))
             optimizer.zero_grad()
-            #loss = model.loss(output, target, epoch, 'train')
             loss = model.loss(data, target, epoch, 'train')
         
             #print(loss)
@@ -62,7 +60,7 @@ def main(cfg):
     
     #kwargs = {'num_workers': 1, 'pin_memory': True} if args.use_cuda else {}
 
-    data_train, data_val = cfg.DATASET.TRAIN_VAL(**cfg.DATASET.KEYWORDS)
+    data_train, data_val = cfg.DATASET.TRAIN_VAL(cfg.DATASET)
     #sampler_train = torch.utils.data.RandomSampler(data_train)
     #sampler_train = torch.utils.data.distributed.DistributedSampler(data_train)
 
@@ -85,7 +83,6 @@ def main(cfg):
     loss = 0
     save_path = cfg.MODEL.SAVE_PATH
     util.make_directory(save_path)
-
 
     if cfg.SOLVER.FROM_CHECKPOINT != True:
         n_epoch_s = 1
@@ -121,7 +118,7 @@ def main(cfg):
         print('loss', loss)
         if loss < best_loss:
             best_loss = loss
-            mname = save_path + "model_best.pt"
+            mname = save_path + "/model_best.pt"
             torch.save(model.state_dict(), mname)
             print('saved', mname) 
 
@@ -133,9 +130,9 @@ def main(cfg):
         print('saved', mname) 
 
         if (epoch % cfg.SOLVER.CHECKPOINT_PERIOD == 0):
-            mname = save_path + "model_" + str(epoch) + ".pt"
+            mname = save_path + "/model_" + str(epoch) + ".pt"
             torch.save(model.state_dict(), mname)
-            torch.save(optimizer.state_dict(), save_path + "optimizer_" + str(epoch) + ".pth")
+            torch.save(optimizer.state_dict(), save_path + "/optimizer_" + str(epoch) + ".pth")
             print('saved', mname)
 
 

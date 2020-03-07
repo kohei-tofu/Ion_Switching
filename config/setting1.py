@@ -15,10 +15,11 @@ class Config:
     #DATALOADER = edict()
 
     DATASET = edict()
+    DATASET.PATH = './data/'
     #DATASET.NAME = 'COCO'
     DATASET.NAME = 'Ion_switching'
     DATASET.TRAIN_VAL = dataset.split_loader
-    DATASET.TEST = dataset.split_loader
+    DATASET.TEST = dataset.testdata_loader
     DATASET.KEYWORDS = {'time_lentgh' : 256, 'num_train_rate' : 0.8}
     #DATASET.KEYWORDS = [256]
     #DATASET.GET_FUNC(**DATASET.KEYWORDS)
@@ -35,7 +36,7 @@ class Config:
     
     MODEL.KEYWORDS = {'t_len' : DATASET.KEYWORDS['time_lentgh']}
     MODEL.DEVICE = 'cuda'
-    MODEL.SAVE_PATH = './result/' + MODEL.TYPE.name
+    MODEL.SAVE_PATH = './result/' + MODEL.TYPE.name + '/'
 
     #
     # SOLVER
@@ -54,13 +55,13 @@ class Config:
 
     SOLVER.SCHEDULER = 'StepLR'
     SOLVER.GAMMA = 0.5
-    SOLVER.STEPSIZE = 10
+    SOLVER.STEPSIZE = 40
     
     
     
     #SOLVER.OPTIMIZER = 'Adam'
     SOLVER.OPTIMIZER = 'SGD'
-    SOLVER.BASE_LR = 1e-9
+    SOLVER.BASE_LR = 1e-6
     SOLVER.MOMENTUM = 0.9
 
 

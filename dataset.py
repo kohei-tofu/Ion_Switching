@@ -44,7 +44,32 @@ class IonDataset(torch.utils.data.Sampler):
         return ret_in, ret_out
         
 
+import json
 
+class Preprocess:
+    
+    def __init__(self):
+        self.ave = 0.
+        self.sig = 1.
+
+    def __call__(self, data):
+        return (data - self.ave) / self.sig
+    
+    def make_params(self, data):
+        temp = data.reshape((-1, 3))[:, 1]
+        self.ave = np.average(temp)
+        self.sig = np.average(np.sqrt((temp - self.ave)**2))
+
+    def save_parms(self, path):
+        d = {'ave':self.ave, 'sig':self.sig}
+        f = open(path + "preprocess.json", "w")
+        json.dump(d, f, ensure_ascii=False)
+
+    def load_parms(self, path):
+        f = open(path + "preprocess.json")
+        d = json.load(f)
+        self.ave = d['ave']
+        self.sig = d['sig']
 
 class IonDataset_one(torch.utils.data.Sampler):
     
@@ -71,16 +96,8 @@ class IonDataset_one(torch.utils.data.Sampler):
             self.num_batches = self.data.shape[0]
             self.len_data = self.data.shape[1]
 
-        self.preprocess = None
-        if phase == 'train':
-            temp = self.data.reshape((-1, 3))[:, 1]
-            ave = np.average(temp)
-            sig = np.average(np.sqrt((temp - ave)**2))
-
-            def func(data):
-                return (data - ave) / sig
-            
-            self.preprocess = func
+        self.preprocess = Preprocess()
+    
 
 
     def __getitem__(self, id):
@@ -122,10 +139,40 @@ class IonDataset_seq(IonDataset_one):
             noise = np.random.normal(0., 0.02, _input.shape[0])
             _input = _input + noise.astype(np.float32)
 
-        #_input = self.preprocess(_input)
         _input = _input[np.newaxis, :]
 
-        return _input, _target
+        return _inputsave_parms, _target
+
+
+
+def testdata_loader(DATASET):
+
+    time_lentgh = DATASET.KEYWORDS['time_lentgh']
+    num_train_rate = DATASET.KEYWORDS['num_train_rate']
+    data_test = IonDataset_seq('test', time_lentgh, None)
+    data_test.preprocess = data_train.preprocess
+    
+    data_test.preprocess.save_parms(DATASET.PATH)
+    
+    return data_test
+
+def split_loader(DATASET):
+
+    idx_train = np.load(DATASET.PATH + 'idx_train.npy')
+    idx_val = np.load(DATASET.PATH + 'idx_val.npy')
+
+    time_lentgh = DATASET.KEYWORDS['time_lentgh']
+    num_train_rate = DATASET.KEYWORDS['num_train_rate']
+
+    data_train = IonDataset_seq('train', time_lentgh, True, idx_train)
+    data_val = IonDataset_seq('val', time_lentgh, None, idx_val)
+
+    print(data_train.data_num)
+    print(data_val.data_num)
+    data_train.preprocess.save_parms(DATASET.PATH)
+    data_val.preprocess.save_parms(DATASET.PATH)
+
+    return data_train, data_val
 
 
 def get_idx(num_train_rate):
@@ -138,31 +185,33 @@ def get_idx(num_train_rate):
     i_bool = np.ones(idx_max, dtype=bool)
     i_bool[idx_train] = False
     idx_val = idx[i_bool]
-    
-    print(4997440, idx_train.shape[0] + idx_val.shape[0])
-    print(idx_train.shape, idx_val.shape)
 
     return idx_train, idx_val
 
+def main(cfg):
+    
+    make_preprocess1(cfg.DATASET)
 
-def split_loader(**kwards):
 
-    time_lentgh = kwards['time_lentgh']
-    num_train_rate = kwards['num_train_rate']
+def make_preprocess1(DATASET):
+    
+    time_lentgh = DATASET.KEYWORDS['time_lentgh']
+    num_train_rate = DATASET.KEYWORDS['num_train_rate']
+
     idx_train, idx_val = get_idx(num_train_rate)
-
     data_train = IonDataset_seq('train', time_lentgh, True, idx_train)
-    data_val = IonDataset_seq('val', time_lentgh, None, idx_val)
-    #data_train = IonDataset_one('train', num, None, idx_train)
-    #data_val = IonDataset_one('val', num, None, idx_val)
 
-    print(data_train.data_num)
-    print(data_val.data_num)
-    data_val.preprocess = data_train.preprocess
+    np.save(DATASET.PATH + 'idx_train.npy', idx_train)
+    np.save(DATASET.PATH + 'idx_val.npy', idx_val)
 
-    return data_train, data_val
+    data_train.preprocess.make_params(data_train.data)
+    data_train.preprocess.save_parms(DATASET.PATH)
+
+    
+
 
 def test1():
+
     data_train = get_data("train")
     data_test = get_data("test")
     print("train", data_train.shape)
@@ -189,6 +238,6 @@ def test1():
 
 if __name__ == "__main__":
     
-    test2()
+    test1()
 
     

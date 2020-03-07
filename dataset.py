@@ -61,7 +61,7 @@ class Preprocess:
         self.sig = np.average(np.sqrt((temp - self.ave)**2))
 
     def save_parms(self, path):
-        d = {'ave':self.ave, 'sig':self.sig}
+        d = {'ave':float(self.ave), 'sig':float(self.sig)}
         f = open(path + "preprocess.json", "w")
         json.dump(d, f, ensure_ascii=False)
 

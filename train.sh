@@ -1,1 +1,1 @@
-python main.py --jobtype train
+python main.py --jobtype train --setting setting6

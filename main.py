@@ -6,15 +6,15 @@ import dataset
 
 def main():
 
-    path_result = './result/'
-    util.make_directory(path_result)
     parser = argparse.ArgumentParser(description='PyTorch Kaggle')
     parser.add_argument('--jobtype', '-M', type=str, default='evaluate', help='')
     #parser.add_argument('--model', '-M', type=str, default='', help='')
     args = parser.parse_args()
 
 
-    import config.setting1 as setting
+    #import config.setting1 as setting
+    #import config.setting2 as setting
+    import config.setting4 as setting
     cfg = setting.Config()
 
     if args.jobtype == 'preprocess':

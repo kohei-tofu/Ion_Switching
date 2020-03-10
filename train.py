@@ -88,14 +88,15 @@ def main(cfg):
         n_epoch_s = 1
         optimizer, scheduler = solver.get_optimizer(cfg, model, -1)
 
-    elif cfg.SOLVER.FROM_CHECKPOINT == 'sequence':
+    elif cfg.SOLVER.FROM_CHECKPOINT == True:
         print('start from checkpoint')
         model.load_state_dict(torch.load(save_path + "/model_last.pt", map_location=device))
         train_loss = np.load(save_path + '/loss_train_last.npy', train_loss).tolist()
         test_loss = np.load(save_path + '/loss_test_last.npy', test_loss).tolist()
         n_epoch_s = len(train_loss) + 1
+        
         best_loss = np.min(test_loss)
-        optimizer, scheduler = config.get_optimizer(cfg, model, -1)
+        optimizer, scheduler = solver.get_optimizer(cfg, model, n_epoch_s)
 
 
     n_epoch_e = n_epoch_s + cfg.SOLVER.MAX_ITER
@@ -115,6 +116,8 @@ def main(cfg):
 
         print('phase : validation')
         loss = evaluate.val(cfg, model, device, val_loader, n_epoch_e)
+        test_loss.append(loss)
+        
         print('loss', loss)
         if loss < best_loss:
             best_loss = loss

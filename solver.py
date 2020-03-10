@@ -21,7 +21,7 @@ def get_optimizer(cfg, model, lst_epoch = -1):
     fname = None
     if cfg.SOLVER.LASTEPOCH <= 0:
         lst_epoch = -1
-    elif last == True:
+    elif cfg.SOLVER.FROM_CHECKPOINT == True:
         fname = save_path + "/optimizer_last.pth"
     else:
         fname = save_path + "/optimizer_" + str(lst_epoch) + ".pth"

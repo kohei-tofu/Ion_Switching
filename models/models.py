@@ -114,11 +114,13 @@ class conv1d_1(ion_base):
         return h
 
 
-class conv1d_1(ion_base):
-    name = 'conv1d_1'
-    def __init__(self, t_len):
-        super(conv1d_1, self).__init__()
-        init = 64
+
+class conv1d(ion_base):
+    name = 'conv1d'
+    def __init__(self, t_len, init_ch):
+        super(conv1d, self).__init__()
+        init = init_ch
+
         self.c11 = nn.Conv1d(1, init, 3, stride=1, padding=1)
         self.c12 = nn.Conv1d(init, init, 3, stride=1, padding=1)
         self.maxpool1 = nn.MaxPool1d(2)
@@ -156,6 +158,22 @@ class conv1d_1(ion_base):
         h = F.relu(self.linear1(h))
         h = self.linear2(h)
         return h
+
+
+class conv1d_1(conv1d):
+    name = 'conv1d_1'
+    def __init__(self, t_len):
+        super(conv1d_1, self).__init__(t_len, 64)
+
+
+class conv1d_2(conv1d):
+    name = 'conv1d_2'
+    def __init__(self, t_len):
+        super(conv1d_2, self).__init__(t_len, 256)
+
+
+
+
 
 
 class resnet1d_1(ion_base):
@@ -209,11 +227,14 @@ class resnet1d_1(ion_base):
 
         return h
 
-class conv_deconv_1(ion_base):
-    name = 'conv_deconv_1'
-    def __init__(self, t_len):
-        super(conv_deconv_1, self).__init__()
-        init = 64
+
+
+
+class conv_deconv(ion_base):
+    name = 'conv_deconv'
+    def __init__(self, t_len, init_ch):
+        super(conv_deconv, self).__init__()
+        init = init_ch
         self.c11 = nn.Conv1d(1, init, 3, stride=1, padding=1)
         self.c12 = nn.Conv1d(init, init, 3, stride=1, padding=1)
         self.maxpool1 = nn.MaxPool1d(2)
@@ -274,7 +295,7 @@ class conv_deconv_1(ion_base):
         h = self.Lrelu(self.c32(h))#(N, 4L, I/4)
 
         h = h.unsqueeze(3)
-        h = self.dout(h)
+        #h = self.dout(h)
 
         h = self.up1(h)
         h = h.squeeze(3)#(N, 4L, I/2)
@@ -301,6 +322,18 @@ class conv_deconv_1(ion_base):
 
 
 
+
+
+class conv_deconv_1(conv_deconv):
+    name = 'conv_deconv_1'
+    def __init__(self, t_len):
+        super(conv_deconv_1, self).__init__(t_len, 64)
+
+
+class conv_deconv_2(conv_deconv):
+    name = 'conv_deconv_2'
+    def __init__(self, t_len):
+        super(conv_deconv_2, self).__init__(t_len, 128)
 
 
 

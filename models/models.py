@@ -174,6 +174,12 @@ class conv1d_2(conv1d):
 
 
 
+class conv1d_3(conv1d):
+    name = 'conv1d_3'
+    def __init__(self, t_len):
+        super(conv1d_3, self).__init__(t_len, 128)
+
+
 
 
 class resnet1d_1(ion_base):

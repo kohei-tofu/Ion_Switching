@@ -30,7 +30,8 @@ class Config:
     #
     MODEL = edict()
     #MODEL.TYPE = mdls.conv1d_1
-    MODEL.TYPE = mdls.conv1d_2
+    #MODEL.TYPE = mdls.conv1d_2
+    MODEL.TYPE = mdls.conv1d_3
     #MODEL.TYPE = mdls.conv_deconv_1
     #MODEL.TYPE = mdls.resnet_deconv_1
     #MODEL.TYPE = mdls.densenet1d_1
@@ -38,7 +39,7 @@ class Config:
     MODEL.KEYWORDS = {'t_len' : DATASET.KEYWORDS['time_lentgh']}
     MODEL.DEVICE = 'cuda'
     #MODEL.SAVE_PATH = './result/' + MODEL.TYPE.name + '/'
-    MODEL.SAVE_PATH = './result/setting4/'
+    MODEL.SAVE_PATH = './result/setting5/'
 
     #
     # SOLVER
@@ -64,7 +65,7 @@ class Config:
     
     #SOLVER.OPTIMIZER = 'Adam'
     SOLVER.OPTIMIZER = 'SGD'
-    SOLVER.BASE_LR = 4e-5
+    SOLVER.BASE_LR = 4e-4
     SOLVER.MOMENTUM = 0.9
 
     SOLVER.WARMUP_FACTOR = 0.1

@@ -14,7 +14,7 @@ def main():
 
     #import config.setting1 as setting
     #import config.setting2 as setting
-    import config.setting4 as setting
+    import config.setting5 as setting
     cfg = setting.Config()
 
     if args.jobtype == 'preprocess':

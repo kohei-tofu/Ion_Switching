@@ -12,9 +12,7 @@ def main():
     #parser.add_argument('--model', '-M', type=str, default='', help='')
     args = parser.parse_args()
 
-
-    #import config.setting1 as setting
-    from config import eval(args.setting) as setting
+    exec('from config import ' + args.setting + ' as setting')
     cfg = setting.Config()
 
     if args.jobtype == 'preprocess':

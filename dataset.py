@@ -149,11 +149,9 @@ class IonDataset_seq(IonDataset_one):
 def testdata_loader(DATASET):
 
     time_lentgh = DATASET.KEYWORDS['time_lentgh']
-    num_train_rate = DATASET.KEYWORDS['num_train_rate']
+    #num_train_rate = DATASET.KEYWORDS['num_train_rate']
     data_test = IonDataset_seq('test', time_lentgh, None)
-    data_test.preprocess = data_train.preprocess
-    
-    data_test.preprocess.save_parms(DATASET.PATH)
+    data_test.preprocess.load_parms(DATASET.PATH)
     
     return data_test
 

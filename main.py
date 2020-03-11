@@ -3,6 +3,7 @@ import argparse
 import train
 import evaluate
 import dataset
+import config.configs as cfgs
 
 def main():
 
@@ -12,8 +13,8 @@ def main():
     #parser.add_argument('--model', '-M', type=str, default='', help='')
     args = parser.parse_args()
 
-    exec('from config import ' + args.setting + ' as setting')
-    cfg = setting.Config()
+    #cfg = setting.Config()
+    cfg = cfgs.get(args.setting)
 
     if args.jobtype == 'preprocess':
         dataset.main(cfg)

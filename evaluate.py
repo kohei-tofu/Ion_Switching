@@ -74,15 +74,18 @@ def make_labels():
 
     pass
 
+
 def main(cfg):
 
     torch.manual_seed(cfg.SOLVER.SEED)
     save_path = cfg.MODEL.SAVE_PATH
-    
-    #kwargs = {'num_workers': 1, 'pin_memory': True} if args.use_cuda else {}
-    data_test = cfg.DATASET.TEST(**cfg.DATASET.KEYWORDS)
-    
     batchsize = cfg.SOLVER.BATCHSIZE
+    
+    #data_train, data_val = cfg.DATASET.TRAIN_VAL(cfg.DATASET)
+    #train_loader = torch.utils.data.DataLoader(data_train, batch_size=batchsize)
+    #val_loader = torch.utils.data.DataLoader(data_val, batch_size=batchsize)
+
+    data_test = cfg.DATASET.TEST(cfg.DATASET)
     test_loader = torch.utils.data.DataLoader(data_test, batch_size=batchsize)
 
     device = torch.device(cfg.SOLVER.N_GPU if cfg.SOLVER.N_GPU >= 0 else "cpu")
@@ -92,7 +95,7 @@ def main(cfg):
     print('device', device)
     model.to(device)
     model.set_device(device)
-    model.load_state_dict(torch.load(save_path + "/model_last.pt", map_location=device))
+    model.load_state_dict(torch.load(save_path + "model_best.pt", map_location=device))
 
     save_path = cfg.MODEL.SAVE_PATH
     util.make_directory(save_path)

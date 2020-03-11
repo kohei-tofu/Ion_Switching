@@ -57,6 +57,8 @@ def train(cfg, model, device, data_train, optimizer, epoch, n_epoch_e):
 def main(cfg):
 
     torch.manual_seed(cfg.SOLVER.SEED)
+    save_path = cfg.MODEL.SAVE_PATH
+    batchsize = cfg.SOLVER.BATCHSIZE
     
     #kwargs = {'num_workers': 1, 'pin_memory': True} if args.use_cuda else {}
 
@@ -64,7 +66,7 @@ def main(cfg):
     #sampler_train = torch.utils.data.RandomSampler(data_train)
     #sampler_train = torch.utils.data.distributed.DistributedSampler(data_train)
 
-    batchsize = cfg.SOLVER.BATCHSIZE
+    
     #train_loader = torch.utils.data.DataLoader(data_train, batch_size=args.batchsize, batch_sampler=sampler_train)
     #train_loader = torch.utils.data.DataLoader(data_train, batch_size=args.batchsize, shuffle=True, drop_last=True)
     train_loader = torch.utils.data.DataLoader(data_train, batch_size=batchsize, shuffle=True)
@@ -81,7 +83,7 @@ def main(cfg):
     test_loss = []
     best_loss = 5000.
     loss = 0
-    save_path = cfg.MODEL.SAVE_PATH
+    
     util.make_directory(save_path)
 
     if cfg.SOLVER.FROM_CHECKPOINT != True:

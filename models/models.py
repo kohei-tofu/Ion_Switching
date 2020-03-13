@@ -1,4 +1,5 @@
 
+import numpy as np
 import torch
 from torch import nn
 #from torch.autograd import Variable
@@ -39,8 +40,9 @@ class ion_base(mbase.base):
                     nn.init.constant_(m.bias, 0.01)
 
     def loss(self, data, target, epoch, phase):
-
+        
         output = self.forward(data.to(self.device))
+        #print(output.shape, target.shape)
         ret = self.loss_func(output, target.to(self.device))
 
         return ret
@@ -53,11 +55,29 @@ class ion_base(mbase.base):
         output = output.cpu().numpy()
         
         if output_list is None:
-            output_list = output
+            #output_list = output
+            output_list = [output]
         else:
-            output_list = np.concatenate((output_list, output), 0)
+            #output_list = np.concatenate((output_list, output), 0)
+            output_list.append(output)
 
         return ret, output_list
+
+
+    def output(self, data, output_list):
+        
+        output = self.forward(data.to(self.device))
+        output = output.cpu().numpy()
+        
+        if output_list is None:
+            #output_list = output
+            output_list = [output]
+        else:
+            #output_list = np.concatenate((output_list, output), 0)
+            output_list.append(output)
+
+        return output_list
+
 
 class loss1(nn.Module):
     def __init__(self, length):
@@ -67,11 +87,13 @@ class loss1(nn.Module):
         pass
 
 
-class conv1d_1(ion_base):
-    name = 'conv1d_1'
-    def __init__(self, t_len):
-        super(conv1d_1, self).__init__()
-        init = 256
+
+
+
+class conv1d_seq(ion_base):
+    name = 'conv1d_seq'
+    def __init__(self, t_len, init):
+        super(conv1d_seq, self).__init__()
         self.c11 = nn.Conv1d(1, init, 3, stride=1, padding=1)
         self.c12 = nn.Conv1d(init, init, 3, stride=1, padding=1)
         self.maxpool1 = nn.MaxPool1d(2)
@@ -92,9 +114,11 @@ class conv1d_1(ion_base):
         self._initialize_weights()
 
     def loss_definition(self, output, target):
-        diff = torch.clamp(torch.abs(output - target), 0, 3.0)
-        loss = self.mse(diff, 0)
+        #diff = torch.clamp(torch.abs(output - target), 0, 3.0)
+        #loss = torch.mean(diff**2)
+        #loss = self.mse(diff, 0)
         #loss = torch.clamp(loss, 0, 5.) 
+        loss = self.mse(output, target)
         return loss
 
     def forward(self, x):
@@ -111,14 +135,32 @@ class conv1d_1(ion_base):
         h = h.squeeze(2)
         h = F.relu(self.linear1(h))
         h = self.linear2(h)
+
+        #h = h.round()
         return h
 
 
 
-class conv1d(ion_base):
-    name = 'conv1d'
+class conv1d_seq1(conv1d_seq):
+    name = 'conv1d_seq1'
+    def __init__(self, t_len):
+        super(conv1d_seq1, self).__init__(t_len, 64)
+
+class conv1d_seq2(conv1d_seq):
+    name = 'conv1d_seq2'
+    def __init__(self, t_len):
+        super(conv1d_seq2, self).__init__(t_len, 128)
+
+class conv1d_seq3(conv1d_seq):
+    name = 'conv1d_seq3'
+    def __init__(self, t_len):
+        super(conv1d_seq3, self).__init__(t_len, 256)
+
+
+class conv1d_one(ion_base):
+    name = 'conv1d_one'
     def __init__(self, t_len, init_ch):
-        super(conv1d, self).__init__()
+        super(conv1d_one, self).__init__()
         init = init_ch
 
         self.c11 = nn.Conv1d(1, init, 3, stride=1, padding=1)
@@ -157,27 +199,27 @@ class conv1d(ion_base):
         h = h.squeeze(2)
         h = F.relu(self.linear1(h))
         h = self.linear2(h)
+
+        #h = h.round()
         return h
 
 
-class conv1d_1(conv1d):
-    name = 'conv1d_1'
+class conv1d_one1(conv1d_one):
+    name = 'conv1d_one1'
     def __init__(self, t_len):
-        super(conv1d_1, self).__init__(t_len, 64)
+        super(conv1d_one1, self).__init__(t_len, 64)
 
 
-class conv1d_2(conv1d):
-    name = 'conv1d_2'
+class conv1d_one2(conv1d_one):
+    name = 'conv1d_one2'
     def __init__(self, t_len):
-        super(conv1d_2, self).__init__(t_len, 256)
+        super(conv1d_one2, self).__init__(t_len, 256)
 
 
-
-
-class conv1d_3(conv1d):
-    name = 'conv1d_3'
+class conv1d_one3(conv1d_one):
+    name = 'conv1d_one3'
     def __init__(self, t_len):
-        super(conv1d_3, self).__init__(t_len, 128)
+        super(conv1d_one3, self).__init__(t_len, 128)
 
 
 

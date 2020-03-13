@@ -14,6 +14,7 @@ def get_data(name):
     ret = data.reshape((len_data, 500000, data.shape[1]))
     return ret
 
+
 class IonDataset(torch.utils.data.Sampler):
 
     def __init__(self, phase, d_len = 256, transform=None):
@@ -71,6 +72,17 @@ class Preprocess:
         self.ave = d['ave']
         self.sig = d['sig']
 
+
+def make_indecies(d_len):
+    length_all = 500000
+    length_shrt = 500000 - d_len
+    indecies = []
+    #for loop in range(10):
+    for loop in range(self.data.shape[0]):
+        indecies += range(length_all*loop, length_all*loop + length_shrt)
+    self.indecies = np.array(indecies)
+
+
 class IonDataset_one(torch.utils.data.Sampler):
     
     def __init__(self, phase, d_len = 256, transform=None, indecies=None):
@@ -79,34 +91,42 @@ class IonDataset_one(torch.utils.data.Sampler):
 
         self.data = get_data(phase)
         self.d_len = d_len
+        self.transform = transform
 
-        if phase != 'test':
-            self.num_batches = self.data.shape[0]
-            self.len_data = self.data.shape[1]
-            data_num = self.num_batches * (self.len_data - self.d_len)
-            self.transform = True
-            if indecies is None:
-                self.indecies = range(data_num)
-            else:
-                self.indecies = indecies
-
-            self.data_num = len(self.indecies)
+        if indecies is None:
+            #self.indecies = range(data_num)
+            length_all = 500000
+            length_shrt = 500000 - d_len
+            indecies = []
+            #for loop in range(10):
+            for loop in range(self.data.shape[0]):
+                indecies += range(length_all*loop, length_all*loop + length_shrt)
+            self.indecies = np.array(indecies)
         else:
+            self.indecies = indecies
+
+        self.num_batches = self.data.shape[0]
+        self.len_data = self.data.shape[1]
+        data_num = self.num_batches * (self.len_data - self.d_len)
             
-            self.num_batches = self.data.shape[0]
-            self.len_data = self.data.shape[1]
-
+        self.get = self.get_input_target
         self.preprocess = Preprocess()
-    
 
-
-    def __getitem__(self, id):
-
+    def get_indices(self, id):
         idx = self.indecies[id]
-        b_num = idx // int(self.len_data - self.d_len)
-        d_num = idx // (b_num + 1)
+        b_num = idx // self.data.shape[1]
+        d_num = idx % self.data.shape[1]
+
+        #b_num = idx // int(self.len_data - self.d_len)
+        #d_num = idx // (b_num + 1)
+
+        return b_num, d_num
+
+
+    def get_input_target(self, id):
+
+        b_num, d_num = self.get_indices(id)
         _input = self.data[b_num, (d_num):(d_num+self.d_len), 1]
-        #_target = self.data[b_num, (d_num):(d_num+self.d_len), 2]
         _target = self.data[np.newaxis, :][:, b_num, d_num, 2]
 
         if self.transform == True:
@@ -118,25 +138,37 @@ class IonDataset_one(torch.utils.data.Sampler):
 
         return _input, _target
 
+    def __getitem__(self, id):
+        return self.get(id)
+
     def __len__(self):
-        return self.data_num
+        return len(self.indecies)
+
+
 
 class IonDataset_seq(IonDataset_one):
     
     def __init__(self, phase, d_len = 256, transform=None, indecies=None):
         super(IonDataset_seq, self).__init__(phase, d_len, transform, indecies)
 
+        if phase == 'test':
+            self.get = self.get_input
+        else:
+            self.get = self.get_input_target
 
     def __getitem__(self, id):
+        return self.get(id)
 
-        idx = self.indecies[id]
-        b_num = idx // int(self.len_data - self.d_len)
-        d_num = idx // (b_num + 1)
+
+    def get_input_target(self, id):
+
+        b_num, d_num = self.get_indices(id)
         _input = self.data[b_num, (d_num):(d_num+self.d_len), 1]
         _target = self.data[b_num, (d_num):(d_num+self.d_len), 2]
+        #_target = self.data[np.newaxis, :][:, b_num, d_num, 2]
 
         if self.transform == True:
-            noise = np.random.normal(0., 0.02, _input.shape[0])
+            noise = np.random.normal(0., 0.002, _input.shape[0])
             _input = _input + noise.astype(np.float32)
 
         _input = self.preprocess(_input)
@@ -145,15 +177,20 @@ class IonDataset_seq(IonDataset_one):
         return _input, _target
 
 
+    def get_input(self, id):
 
-def testdata_loader(DATASET):
+        b_num, d_num = self.get_indices(id)
+        _input = self.data[b_num, (d_num):(d_num+self.d_len), 1]
+        if self.transform == True:
+            noise = np.random.normal(0., 0.002, _input.shape[0])
+            _input = _input + noise.astype(np.float32)
 
-    time_lentgh = DATASET.KEYWORDS['time_lentgh']
-    #num_train_rate = DATASET.KEYWORDS['num_train_rate']
-    data_test = IonDataset_seq('test', time_lentgh, None)
-    data_test.preprocess.load_parms(DATASET.PATH)
-    
-    return data_test
+        _input = self.preprocess(_input)
+        _input = _input[np.newaxis, :]
+
+        return _input
+
+
 
 def split_loader(DATASET):
 
@@ -166,15 +203,34 @@ def split_loader(DATASET):
     data_train = IonDataset_seq('train', time_lentgh, True, idx_train)
     data_val = IonDataset_seq('val', time_lentgh, None, idx_val)
 
-    print(data_train.data_num)
-    print(data_val.data_num)
+    print(len(data_train))
+    print(len(data_val))
     data_train.preprocess.load_parms(DATASET.PATH)
     data_val.preprocess.load_parms(DATASET.PATH)
 
     return data_train, data_val
 
 
-def get_idx(num_train_rate):
+def traindata_loader(DATASET):
+
+    time_lentgh = DATASET.KEYWORDS['time_lentgh']
+    #num_train_rate = DATASET.KEYWORDS['num_train_rate']
+    data_train = IonDataset_seq('train', time_lentgh, None)
+    data_train.preprocess.load_parms(DATASET.PATH)
+    
+    return data_train
+
+def testdata_loader(DATASET):
+
+    time_lentgh = DATASET.KEYWORDS['time_lentgh']
+    #num_train_rate = DATASET.KEYWORDS['num_train_rate']
+    data_test = IonDataset_seq('test', time_lentgh, None)
+    data_test.preprocess.load_parms(DATASET.PATH)
+    
+    return data_test
+
+
+def get_idx_old(time_lentgh, num_train_rate):
 
     idx_max = 4997440
     num_train = int(idx_max*num_train_rate)
@@ -187,6 +243,37 @@ def get_idx(num_train_rate):
 
     return idx_train, idx_val
 
+
+def get_idx(time_lentgh, num_train_rate):
+
+    length = 500000 - time_lentgh
+    
+    all_idx = np.array(range(5000000))
+    indecies = []
+    hamideta = []
+    for loop in range(10):
+        indecies += range(500000*loop, 500000*loop + length)
+        hamideta += range(500000*loop + length, 500000*(loop+1))
+    indecies = np.array(indecies)
+    hamideta = np.array(hamideta)
+    #print(indecies)
+    
+    idx_max = indecies.shape[0]
+    #idx_max = 4997440
+    num_train = int(idx_max*num_train_rate)
+    
+    idx_train = np.random.choice(indecies, num_train, replace=False)
+    print(indecies.shape, idx_train.shape)
+
+    i_bool = np.ones(5000000, dtype=bool)
+    i_bool[idx_train] = False
+    i_bool[hamideta] = False
+    idx_val = all_idx[i_bool]
+    #idx_val =  indecies.tolist() - idx_train.tolist()
+    print(idx_train.shape, idx_val.shape, hamideta.shape, all_idx.shape)
+    return idx_train, idx_val
+
+
 def main(cfg):
     
     make_preprocess1(cfg.DATASET)
@@ -197,7 +284,7 @@ def make_preprocess1(DATASET):
     time_lentgh = DATASET.KEYWORDS['time_lentgh']
     num_train_rate = DATASET.KEYWORDS['num_train_rate']
 
-    idx_train, idx_val = get_idx(num_train_rate)
+    idx_train, idx_val = get_idx(time_lentgh, num_train_rate)
     data_train = IonDataset_seq('train', time_lentgh, True, idx_train)
 
     np.save(DATASET.PATH + 'idx_train.npy', idx_train)
@@ -235,8 +322,29 @@ def test1():
     pl.show()
 
 
+def test2():
+    data_test = IonDataset_seq('test', 256, None)
+
+    def test(data_, id_in):
+        idx = data_.indecies[id_in]
+        num_b, num_d = data_.get_indices(id_in)
+        print(id_in, idx, num_b, num_d)
+
+    test(data_test, 0)
+    test(data_test, 500000 - 256)
+    test(data_test, 500000 - 256 - 1)
+    test(data_test, 500000 - 256 + 1)
+    test(data_test, (500000 - 256)*2)
+
+    #for id in range(len(data_test)):
+    #    idx = data_test.indecies[id]
+    #    num_b, num_d = data_test.get_indices(id)
+        
+        #print(id, idx, num_b, num_d)
+
 if __name__ == "__main__":
     
-    test1()
+    #test1()
+    test2()
 
     

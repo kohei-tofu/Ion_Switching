@@ -19,6 +19,7 @@ class Config:
     #DATASET.NAME = 'COCO'
     DATASET.NAME = 'Ion_switching'
     DATASET.TRAIN_VAL = dataset.split_loader
+    DATASET.TRAIN = dataset.traindata_loader
     DATASET.TEST = dataset.testdata_loader
     DATASET.KEYWORDS = {'time_lentgh' : 256, 'num_train_rate' : 0.8}
     #DATASET.KEYWORDS = [256]
@@ -29,22 +30,19 @@ class Config:
     #  MODEL
     #
     MODEL = edict()
-    MODEL.TYPE = mdls.conv1d_1
-    #MODEL.TYPE = mdls.conv_deconv_1
-    #MODEL.TYPE = mdls.resnet_deconv_1
-    #MODEL.TYPE = mdls.densenet1d_1
+    MODEL.TYPE = mdls.conv1d_seq1
     
     MODEL.KEYWORDS = {'t_len' : DATASET.KEYWORDS['time_lentgh']}
     MODEL.DEVICE = 'cuda'
     #MODEL.SAVE_PATH = './result/' + MODEL.TYPE.name + '/'
-    MODEL.SAVE_PATH = './result/setting1'
+    MODEL.SAVE_PATH = './result/setting1/'
 
     #
     # SOLVER
     #
     SOLVER = edict()
-    #SOLVER.FROM_CHECKPOINT = False
-    SOLVER.FROM_CHECKPOINT = True
+    SOLVER.FROM_CHECKPOINT = False
+    #SOLVER.FROM_CHECKPOINT = True
     SOLVER.MAX_ITER = 40 
     #SOLVER.BATCHSIZE = 256
     SOLVER.BATCHSIZE = 64
@@ -57,13 +55,13 @@ class Config:
 
     SOLVER.SCHEDULER = 'StepLR'
     SOLVER.GAMMA = 0.5
-    SOLVER.STEPSIZE = 120
+    SOLVER.STEPSIZE = 5
     
     
     
     #SOLVER.OPTIMIZER = 'Adam'
     SOLVER.OPTIMIZER = 'SGD'
-    SOLVER.BASE_LR = 1e-7
+    SOLVER.BASE_LR = 1e-4
     SOLVER.MOMENTUM = 0.9
 
 

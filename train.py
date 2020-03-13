@@ -49,9 +49,33 @@ def train(cfg, model, device, data_train, optimizer, epoch, n_epoch_e):
         print('train loss : ', loss_sum)
         return loss_sum
 
+def val(cfg, model, device, data_val, epoch):
 
+    model.eval()
+    test_loss = 0
+    correct = 0
 
+    #num_data = data_test.num_data
+    loss_sum = 0
+    with torch.no_grad():
+        for batch_idx, (data, target) in enumerate(data_val):
 
+            loss = model.loss(data, target, epoch, 'val')
+            if loss is None:
+                print('None')
+                continue
+
+            d = batch_idx/len(data_val) * 100
+            #print('val {}'.format(loss.item()))
+            print('Val Epoch: [{} / {}({:.0f}%)] Loss: {:.6f}'.format(
+                batch_idx, len(data_val), d, loss.item()))
+            loss_sum += loss.item()
+
+    loss_sum /= len(data_val)
+
+    print()
+    print('val_loss : ' , loss_sum)
+    return loss_sum
 
 
 def main(cfg):
@@ -92,9 +116,9 @@ def main(cfg):
 
     elif cfg.SOLVER.FROM_CHECKPOINT == True:
         print('start from checkpoint')
-        model.load_state_dict(torch.load(save_path + "/model_last.pt", map_location=device))
-        train_loss = np.load(save_path + '/loss_train_last.npy', train_loss).tolist()
-        test_loss = np.load(save_path + '/loss_test_last.npy', test_loss).tolist()
+        model.load_state_dict(torch.load(save_path + "model_last.pt", map_location=device))
+        train_loss = np.load(save_path + 'loss_train_last.npy', train_loss).tolist()
+        test_loss = np.load(save_path + 'loss_test_last.npy', test_loss).tolist()
         n_epoch_s = len(train_loss) + 1
         
         best_loss = np.min(test_loss)
@@ -117,27 +141,27 @@ def main(cfg):
         scheduler.step()
 
         print('phase : validation')
-        loss = evaluate.val(cfg, model, device, val_loader, n_epoch_e)
+        loss = val(cfg, model, device, val_loader, n_epoch_e)
         test_loss.append(loss)
         
         print('loss', loss)
         if loss < best_loss:
             best_loss = loss
-            mname = save_path + "/model_best.pt"
+            mname = save_path + "model_best.pt"
             torch.save(model.state_dict(), mname)
             print('saved', mname) 
 
-        mname = save_path + "/model_last.pt"
+        mname = save_path + "model_last.pt"
         torch.save(model.state_dict(), mname)
-        np.save(save_path + '/loss_train_last.npy', train_loss)
-        np.save(save_path + '/loss_test_last.npy', test_loss)
-        torch.save(optimizer.state_dict(), save_path + "/optimizer_last.pth")
+        np.save(save_path + 'loss_train_last.npy', train_loss)
+        np.save(save_path + 'loss_test_last.npy', test_loss)
+        torch.save(optimizer.state_dict(), save_path + "optimizer_last.pth")
         print('saved', mname) 
 
         if (epoch % cfg.SOLVER.CHECKPOINT_PERIOD == 0):
-            mname = save_path + "/model_" + str(epoch) + ".pt"
+            mname = save_path + "model_" + str(epoch) + ".pt"
             torch.save(model.state_dict(), mname)
-            torch.save(optimizer.state_dict(), save_path + "/optimizer_" + str(epoch) + ".pth")
+            torch.save(optimizer.state_dict(), save_path + "optimizer_" + str(epoch) + ".pth")
             print('saved', mname)
 
 

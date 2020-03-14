@@ -384,7 +384,7 @@ class conv_deconv_2(conv_deconv):
         super(conv_deconv_2, self).__init__(t_len, 128)
 
 
-
+import models.resnet1d as r1d
 
 class resnet_deconv_1(ion_base):
     name = 'resnet_deconv_1'
@@ -393,7 +393,7 @@ class resnet_deconv_1(ion_base):
         super(resnet_deconv_1, self).__init__()
         output = 512
         #output = 1024
-        self.resnet = resnet1d.ResNet1D(256, resnet1d.Bottleneck, [2, 2, 2, 2], output)
+        self.resnet = r1d.ResNet1D(256, r1d.Bottleneck, [2, 2, 2, 2], output)
         
         self.LeaklyReLu = nn.LeakyReLU(inplace=True)
         self.c51 = nn.Conv1d(output, output//2, 1, stride=1, padding=0)

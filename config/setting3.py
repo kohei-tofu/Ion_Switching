@@ -30,8 +30,8 @@ class Config:
     #
     MODEL = edict()
     #MODEL.TYPE = mdls.conv1d_1
-    MODEL.TYPE = mdls.conv_deconv_2
-    #MODEL.TYPE = mdls.resnet_deconv_1
+    #MODEL.TYPE = mdls.conv_deconv_2
+    MODEL.TYPE = mdls.resnet_deconv_1
     #MODEL.TYPE = mdls.densenet1d_1
     
     MODEL.KEYWORDS = {'t_len' : DATASET.KEYWORDS['time_lentgh']}
@@ -55,16 +55,15 @@ class Config:
     
     SOLVER.CHECKPOINT_PERIOD = 5 
 
-    SOLVER.SCHEDULER = 'StepLR'
-    SOLVER.GAMMA = 0.5
-    SOLVER.STEPSIZE = 20
-    
-    
     
     #SOLVER.OPTIMIZER = 'Adam'
     SOLVER.OPTIMIZER = 'SGD'
-    SOLVER.BASE_LR = 1e-6
+    SOLVER.BASE_LR = 1e-5
     SOLVER.MOMENTUM = 0.9
+
+    SOLVER.SCHEDULER = 'StepLR'
+    SOLVER.GAMMA = 0.5
+    SOLVER.STEPSIZE = 40
 
 
     SOLVER.WARMUP_FACTOR = 0.1

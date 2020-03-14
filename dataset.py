@@ -37,6 +37,7 @@ class IonDataset(torch.utils.data.Sampler):
 
         b_num = idx // int(self.len_data - self.d_len)
         d_num = idx // (b_num + 1)
+
         _time = self.data[b_num, (d_num):(d_num+self.d_len), 0]
         _input = self.data[b_num, (d_num):(d_num+self.d_len), 1]
         _target = self.data[b_num, (d_num):(d_num+self.d_len), 2]
@@ -73,15 +74,6 @@ class Preprocess:
         self.sig = d['sig']
 
 
-def make_indecies(d_len):
-    length_all = 500000
-    length_shrt = 500000 - d_len
-    indecies = []
-    #for loop in range(10):
-    for loop in range(self.data.shape[0]):
-        indecies += range(length_all*loop, length_all*loop + length_shrt)
-    self.indecies = np.array(indecies)
-
 
 class IonDataset_one(torch.utils.data.Sampler):
     
@@ -96,11 +88,11 @@ class IonDataset_one(torch.utils.data.Sampler):
         if indecies is None:
             #self.indecies = range(data_num)
             length_all = 500000
-            length_shrt = 500000 - d_len
+            length_shrt = 500000 - d_len + 1
             indecies = []
             #for loop in range(10):
-            for loop in range(self.data.shape[0]):
-                indecies += range(length_all*loop, length_all*loop + length_shrt)
+            for batch in range(self.data.shape[0]):
+                indecies += range(length_all*batch, length_all*batch + length_shrt)
             self.indecies = np.array(indecies)
         else:
             self.indecies = indecies
@@ -244,9 +236,20 @@ def get_idx_old(time_lentgh, num_train_rate):
     return idx_train, idx_val
 
 
+def make_indecies(d_len):
+    length_all = 500000
+    length_shrt = 500000 - d_len + 1
+    indecies = []
+    #for loop in range(10):
+    for loop in range(self.data.shape[0]):
+        indecies += range(length_all*loop, length_all*loop + length_shrt)
+    self.indecies = np.array(indecies)
+
+
+
 def get_idx(time_lentgh, num_train_rate):
 
-    length = 500000 - time_lentgh
+    length = 500000 - time_lentgh + 1
     
     all_idx = np.array(range(5000000))
     indecies = []
@@ -256,6 +259,7 @@ def get_idx(time_lentgh, num_train_rate):
         hamideta += range(500000*loop + length, 500000*(loop+1))
     indecies = np.array(indecies)
     hamideta = np.array(hamideta)
+    
     #print(indecies)
     
     idx_max = indecies.shape[0]
@@ -323,18 +327,36 @@ def test1():
 
 
 def test2():
-    data_test = IonDataset_seq('test', 256, None)
+    tlen = 256
+    data_test = IonDataset_seq('test', tlen, None)
 
     def test(data_, id_in):
         idx = data_.indecies[id_in]
         num_b, num_d = data_.get_indices(id_in)
-        print(id_in, idx, num_b, num_d)
+        print(id_in, idx, num_b, num_d, num_d+tlen)
 
     test(data_test, 0)
     test(data_test, 500000 - 256)
     test(data_test, 500000 - 256 - 1)
     test(data_test, 500000 - 256 + 1)
     test(data_test, (500000 - 256)*2)
+    test(data_test, (500000 - 256)*2 - 1)
+    test(data_test, (500000 - 256)*2 + 1)
+
+    
+    dshape = data_test.data.shape
+    ave_c = np.zeros((dshape[0], dshape[1]))
+    #ave_c = np.zeros((4, 500000))
+    print(ave_c.shape, len(data_test))
+    for i, id in enumerate(range(len(data_test))):
+        b_num, d_num = data_test.get_indices(id)   
+        ave_c[b_num, (d_num):(d_num+tlen)] += np.ones(tlen)
+
+    ave_c = ave_c.reshape((dshape[0] * dshape[1]))
+    print(ave_c.shape, np.min(ave_c))
+    print(ave_c[ave_c < 1])
+    #import pylab as pl
+    #pl.figure
 
     #for id in range(len(data_test)):
     #    idx = data_test.indecies[id]

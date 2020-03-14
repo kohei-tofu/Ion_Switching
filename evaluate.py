@@ -7,7 +7,7 @@ import util
 import evaluate
 import solver
 import pylab as pl
-
+import pandas as pd
 
 
 def get_output(model, device, data_loader):
@@ -104,7 +104,7 @@ def inference(output_list, data_, bsize):
     #take average
     ans = ans.reshape((dshape[0] * dshape[1], 2))
     print(ans.shape, np.min(ans[:, 1]))
-    ans[:, 0] = ans[:, 0] / (ans[:, 1] + 1e-3)
+    ans[:, 0] = ans[:, 0] / (ans[:, 1])
     ans[:, 0] = ans[:, 0].round()
 
     print(ans[:, 1])
@@ -114,7 +114,7 @@ def inference(output_list, data_, bsize):
     #pl.grid()
     #pl.savefig(save_path + phase + '_evaluation.png')
 
-    return ans[:, 0]
+    return ans[:, 0].astype(np.int32)
 
 
 
@@ -147,16 +147,18 @@ def evaluate_test(cfg, save_path, batchsize, model, device):
     output_test = get_output(model, device, test_loader)
     inference_test = inference(output_test, data_test, batchsize)
 
-    dshape = data_test.data.shape
-    dflatten = data_test.data.reshape((dshape[0] * dshape[1], dshape[2]))
+    #dshape = data_test.data.shape
+    #dflatten = data_test.data.reshape((dshape[0] * dshape[1], dshape[2]))
+    #print(inference_test.shape, dflatten.shape)
+    #savearray = np.vstack((dflatten[:, 0], inference_test)).T
+    df1 = pd.read_csv('data/test.csv', dtype = str)
+    df2 = pd.DataFrame(inference_test, columns=['open_channels'])
 
-    
-    print(inference_test.shape, dflatten.shape)
-    savearray = np.vstack((inference_test, dflatten[:, 0])).T
-
-    print(savearray.shape)
-    print(save_path + 'inference_test.csv')
-    np.savetxt(fname=save_path + 'inference_test.csv', X = savearray, header="time,open_channels")
+    df = pd.concat((df1['time'], df2['open_channels']), 1)
+    print(df)
+    print(save_path + 'submission.csv')
+    df.to_csv(save_path + 'submission.csv', index=False)
+    #np.savetxt(fname=save_path + 'submission.csv', X = savearray, header="time,open_channels")
 
 
 def main(cfg):
